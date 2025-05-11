@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">AI Chatbot</h1>
+        <div id="chatBox" class="h-64 overflow-y-auto border p-4 mb-4 bg-gray-50 rounded"></div>
+        <div class="flex">
+            <input id="userInput" type="text" class="flex-1 p-2 border rounded-l focus:outline-none" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" class="bg-blue-500 text-white p-2 rounded-r hover:bg-blue-600">Send</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) return;
+
+            // Display user message
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML += `<div class="text-right"><span class="inline-block bg-blue-100 p-2 rounded my-1">${userInput}</span></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            document.getElementById('userInput').value = '';
+
+            try {
+                console.log('Sending message:', userInput);
+                const response = await fetch('http://127.0.0.1:5000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userInput })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Received response:', data);
+
+                // Display bot response
+                chatBox.innerHTML += `<div class="text-left"><span class="inline-block bg-gray-200 p-2 rounded my-1">${data.response}</span></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (error) {
+                console.error('Error:', error);
+                chatBox.innerHTML += `<div class="text-left"><span class="inline-block bg-red-200 p-2 rounded my-1">Error: Could not reach the server. ${error.message}</span></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
