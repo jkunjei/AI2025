@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 load_dotenv()
 import logging
 import os
-
 from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
 import nltk
@@ -22,14 +21,14 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
-    raise ValueError("OPENAI_API_KEY не найден в окружении")
+    raise ValueError("OPENAI_API_KEY not found in environment")
 client = OpenAI(api_key=api_key)
 
 stop_words = set(stopwords.words('english')).difference(
     {'how', 'what', 'who', 'where', 'when', 'why', 'you', 'about', 'me', 'are', 'is'}
 )
 
-USE_MOCK = True  # Включи False, чтобы использовать реальный OpenAI API
+USE_MOCK = False
 
 def preprocess_text(text):
     tokens = word_tokenize(text.lower())
@@ -39,8 +38,8 @@ def preprocess_text(text):
 
 def generate_gpt_response(prompt):
     if USE_MOCK:
-        logging.info("Используется мок-ответ вместо OpenAI API")
-        return "Это заглушка, реальный ответ от OpenAI будет здесь."
+        logging.info("Using mock response instead of OpenAI API")
+        return "This is a placeholder, real response from OpenAI would be here."
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -49,7 +48,7 @@ def generate_gpt_response(prompt):
         return response.choices[0].message.content.strip()
     except Exception as e:
         logging.error(f"OpenAI API error: {e}", exc_info=True)
-        return f"Ошибка OpenAI API: {str(e)}"
+        return f"OpenAI API error: {str(e)}"
 
 @app.route('/')
 def index():
